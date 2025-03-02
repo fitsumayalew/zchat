@@ -1,0 +1,16 @@
+diff --git a/node_modules/zero-svelte/.DS_Store b/.DS_Store
+new file mode 100644
+index 0000000000000000000000000000000000000000..18bdf3f6955619507e8d4a0ad4cc7fbf451d4169
+Binary files /dev/null and b/.DS_Store differ
+diff --git a/package.json b/package.json
+index 4f16ea52f01b9f1027c1995cf1dd1b1cd8ae73bb..ca812c35611eb6bec2ee319b30a0e4156eae21bc 100644
+--- a/package.json
++++ b/package.json
+@@ -53,6 +53,6 @@
+ 	"types": "./dist/index.d.ts",
+ 	"type": "module",
+ 	"dependencies": {
+-		"@rocicorp/zero": "^0.13.2025013101"
++		"@rocicorp/zero": "^0.16.2025022800"
+ 	}
+ }

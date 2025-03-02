@@ -1,0 +1,209 @@
+html {
+    --bg-1: #f8fafc;
+    --bg-2: #e2e8f0;;
+    --bg-3: #e2e8f0;
+    --fg-1: #334155;
+    --fg-2: #4d4d4d;
+    --link: #1c7ed4;
+    --link-hover: #3492e5;
+    --link-active: #176bb5;
+    --text-color: #334155;
+}
+
+html.dark {
+    --bg-1: #2e2e2e;
+    --bg-2: #4d4d4d;
+    --bg-3: #666;
+    --fg-1: #e6e6e6;
+    --fg-2: #b3b3b3;
+    --fg-3: #999;
+    --link: #1c7ed4;
+    --link-hover: #3492e5;
+    --link-active: #4baffb;
+    --text-color: #e6e6e6;
+}
+
+body {
+    --border-radius: 4px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    background: var(--bg-1);
+    color: var(--fg-1);
+    font-family: var(--font);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+    line-height: 1.1;
+    margin: 0.5rem;
+}
+
+label {
+    margin: .5rem .1rem
+}
+
+a {
+    color: var(--link)
+}
+
+a:hover {
+    color: var(--link-hover)
+}
+
+a:active {
+    color: var(--link-active)
+}
+
+label {
+    align-items: center;
+    gap: .5rem;
+    display: flex
+}
+
+label input {
+    margin: 0
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+}
+
+button {
+    background: var(--link);
+    color: var(--bg-1);
+    border-radius: var(--border-radius);
+    border: none;
+    padding: .5rem 1rem
+}
+
+button:hover {
+    background: var(--link-hover)
+}
+
+button:active {
+    background: var(--link-active)
+}
+
+:-webkit-any(button, button:hover, button:active):disabled {
+    background: var(--link);
+    filter: grayscale();
+    opacity: .4
+}
+
+:is(button, button:hover, button:active):disabled {
+    background: var(--link);
+    filter: grayscale();
+    opacity: .4
+}
+
+input,
+textarea,
+select {
+    border: 1px solid var(--bg-2);
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+    padding: .5rem
+}
+
+input,
+textarea {
+    background: var(--bg-1);
+    color: inherit
+}
+
+select:not([multiple]) {
+    background: var(--bg-2)
+}
+
+textarea {
+    font-family: var(--font-mono);
+    font-size: .9rem
+}
+
+form {
+    flex-direction: column;
+    align-items: baseline;
+    gap: 1rem;
+    display: flex
+}
+
+progress {
+    margin: .5rem 0
+}
+
+progress:first-child {
+    margin-top: 0
+}
+
+progress:lsat-child {
+    margin-bottom: 0
+}
+
+.error {
+    color: red
+}
+
+code {
+    background: var(--bg-2);
+    font-family: var(--font-mono);
+    border-radius: var(--border-radius);
+    padding: .15rem .3rem;
+    font-size: .9em
+}
+
+/* Scrollbar Styles */
+/* For Webkit browsers (Chrome, Safari, etc.) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-2);
+    border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) var(--bg-2);
+}
+
+/* Ensure dark mode scrollbars match theme */
+html.dark ::-webkit-scrollbar-track {
+    background: var(--bg-2);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+html.dark * {
+    scrollbar-color: rgba(255, 255, 255, 0.2) var(--bg-2);
+}
