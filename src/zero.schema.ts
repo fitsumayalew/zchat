@@ -112,7 +112,7 @@ export const permissions: ReturnType<typeof definePermissions>
         },
         chat:{
             row:{
-                insert: NOBODY_CAN,
+                insert: [loggedInUserIsCreator],
                 select: [loggedInUserIsCreator],
                 delete:[loggedInUserIsCreator],
                 update:{
@@ -123,7 +123,7 @@ export const permissions: ReturnType<typeof definePermissions>
         },
         message:{
             row:{
-                insert: NOBODY_CAN,
+                insert: [loggedInUserIsCreator],
                 select: [loggedInUserIsCreator],
                 delete: NOBODY_CAN,
                 update:{
