@@ -15,42 +15,15 @@ export async function POST({ request, locals }) {
     }
 
     try {
-        const { userMessage, modelID }: {
-            userMessage: string,
-            modelID: string
+        const { chatID, userMessage }: {
+            chatID: string,
+            userMessage: string
         } = await request.json();
 
 
-        // check if model exists
-        const selectedModel = await db.query.model.findFirst({
-            where: eq(model.id, modelID)
-        });
-
-
-        if (!selectedModel) {
-            return json({ error: 'Model not found!' }, { status: 404 });
-        }
 
         // create a new chat
-        const chatID = nanoid();
-        const userMessageID = nanoid();
         const aiMessageID = nanoid();
-
-        await db.insert(chat).values({
-            id: chatID,
-            userID: locals.user.id,
-            modelID,
-        });
-
-        // create message 
-
-        await db.insert(message).values({
-            id: userMessageID,
-            chatID,
-            userID: locals.user.id,
-            role: 'user',
-            content: userMessage,
-        });
 
         // generate ai response message
         await db.insert(message).values({
@@ -62,17 +35,8 @@ export async function POST({ request, locals }) {
         });
 
 
-        // processResponeIntheBackground({ chatID, aiMessageID, userMessage });
 
-        const url = new URL(request.url);
-        const origin = url.origin;
-
-        // send message to background
-        await fetch(`${origin}/api/chat/new_gen`, {
-            method: 'POST',
-            body: JSON.stringify({ chatID, aiMessageID })
-        });
-
+        await processResponeIntheBackground({ chatID, userMessage, aiMessageID });
 
         return json({
             chatID,

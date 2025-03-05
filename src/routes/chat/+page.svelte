@@ -3,46 +3,71 @@
 	import { z } from "$lib/z.svelte";
 	import { goto } from "$app/navigation";
 	import MessageForm from "$lib/components/MessageForm.svelte";
-
+	import { nanoid } from "nanoid";
+	import { getRawJwt } from "$lib/cookie";
+	import { page } from "$app/state";
 
 	let modelsQuery = z.current.query.model;
 	let models = new Query(modelsQuery);
 
-
 	let newMessage = $state("");
 	let currentModelID = $derived(models.current[0]?.id);
-
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		try {
-			fetch("/api/chat/new", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					userMessage: newMessage,
-					modelID: currentModelID,
-				}),
-			})
-				.then((response) => response.json())
-				.then((data) => {
-					if (data.error) {
-						console.error("Error sending message:", data.error);
-						return;
-					}
-					goto(`/chat/${data.chatID}`);
-				})
-				.catch((error) => {
-					console.error("Error sending message:", error);
-				});
+			const chatID = nanoid();
+			const userMessageID = nanoid();
 
+			await z.current.mutate.chat
+				.insert({
+					id: chatID,
+					userID: page.data.user.id,
+					modelID: currentModelID,
+				})
+				.then(() => {
+					z.current.mutate.message
+						.insert({
+							id: userMessageID,
+							chatID,
+							userID: page.data.user.id,
+							role: "user",
+							content: newMessage,
+						})
+						.then(() => {
+							fetch("/api/chat/new", {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/json",
+								},
+								body: JSON.stringify({
+									userMessage: newMessage,
+									chatID,
+								}),
+							})
+								.then((response) => response.json())
+								.then((data) => {
+									if (data.error) {
+										console.error(
+											"Error sending message:",
+											data.error,
+										);
+										return;
+									}
+								})
+								.catch((error) => {
+									console.error(
+										"Error sending message:",
+										error,
+									);
+								});
+							goto(`/chat/${chatID}`);
+						});
+				});
 		} catch (error) {
 			console.error(error);
 		}
 	}
-
 </script>
 
 <div class="welcome-container">
@@ -50,7 +75,12 @@
 	<p>Select a conversation from the sidebar or start a new one below.</p>
 
 	<div class="message-form-container">
-		<MessageForm models={models.current} bind:newMessage {handleSubmit} currentModelID={currentModelID}/>
+		<MessageForm
+			models={models.current}
+			bind:newMessage
+			{handleSubmit}
+			{currentModelID}
+		/>
 	</div>
 </div>
 

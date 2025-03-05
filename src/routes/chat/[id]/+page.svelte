@@ -7,6 +7,7 @@
 	import { z } from "$lib/z.svelte";
 	import { Query } from "zero-svelte";
 	import MessageForm from "$lib/components/MessageForm.svelte";
+	import { nanoid } from "nanoid";
 
 	// Create a reactive query that updates when page.params.id changes
 	let chatQuery = $derived(
@@ -38,29 +39,38 @@
 	function submitMessage() {
 		if (!newMessage.trim()) return;
 
-		// Send the message to our API endpoint
-		fetch("/api/chat/send_message", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
+		const userMessageID = nanoid();
+		z.current.mutate.message
+			.insert({
+				id: userMessageID,
 				chatID: page.params.id,
-				userMessage: newMessage,
-			}),
-		})
-			.then((response) => response.json())
-			.then((data) => {
-				if (data.error) {
-					console.error("Error sending message:", data.error);
-					return;
-				}
-
-				// Clear the input since we're using the Query component for messages now
-				newMessage = "";
+				userID: page.data.user.id,
+				role: "user",
+				content: newMessage,
 			})
-			.catch((error) => {
-				console.error("Error sending message:", error);
+			.then(() => {
+				newMessage = "";
+				fetch("/api/chat/send_message", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						chatID: page.params.id,
+					}),
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						if (data.error) {
+							console.error("Error sending message:", data.error);
+							return;
+						}
+
+						// Clear the input since we're using the Query component for messages now
+					})
+					.catch((error) => {
+						console.error("Error sending message:", error);
+					});
 			});
 	}
 
@@ -76,9 +86,9 @@
 			{#if chat.current?.messages && chat.current?.messages.length}
 				{#each chat.current?.messages as message}
 					<div
-						class="{message.role === 'user'
-							? 'user-message'
-							: 'assistant-message'}"
+						class={message.role === "user"
+							? "user-message"
+							: "assistant-message"}
 					>
 						<div class="message-content">
 							{#if message.role === "user"}
@@ -104,7 +114,9 @@
 			bind:newMessage
 			{handleSubmit}
 			disableModelSelector={true}
-			disableSendButton={chat.current && chat.current.messages.length > 0 && !chat.current?.messages[0].isMessageFinished}
+			disableSendButton={chat.current &&
+				chat.current.messages.length > 0 &&
+				!chat.current?.messages[0].isMessageFinished}
 		/>
 	</div>
 </div>
@@ -131,7 +143,6 @@
 		flex-direction: column-reverse;
 		scroll-snap-type: y mandatory;
 		padding: 0 20rem;
-
 	}
 
 	.messages {
@@ -140,7 +151,6 @@
 		min-height: min-content;
 		max-width: 48rem;
 		width: 100%;
-
 	}
 
 	.message-form-container {
@@ -148,7 +158,6 @@
 		max-width: 48rem;
 		margin-bottom: 1rem;
 	}
-
 
 	.user-message {
 		background-color: #3b82f6;

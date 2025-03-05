@@ -12,25 +12,7 @@ export async function POST({ request, locals }) {
     }
 
     try {
-        const { chatID, userMessage } = await request.json();
-
-        const existingChat = await db.query.chat.findFirst({
-            where: and(eq(chat.id, chatID), eq(chat.userID, locals.user.id))
-        });
-
-        if (!existingChat) {
-            return json({ error: 'Chat not found' }, { status: 404 });
-        }
-
-        // Save user message to database
-        const userMessageID = nanoid();
-        await db.insert(message).values({
-            id: userMessageID,
-            chatID,
-            userID: locals.user.id,
-            role: 'user',
-            content: userMessage,
-        });
+        const { chatID } = await request.json();
 
 
         const aiMessageID = nanoid();
@@ -44,19 +26,10 @@ export async function POST({ request, locals }) {
         });
 
 
-        // processResponeIntheBackground({ chatID, aiMessageID });
-        const url = new URL(request.url);
-        const origin = url.origin;
-        // send message to background
-        fetch(`${origin}/api/chat/gen`, {
-            method: 'POST',
-            body: JSON.stringify({ chatID, aiMessageID })
-        });
-
-
+        await processResponeIntheBackground({ chatID, aiMessageID });
+   
         return json({
             chatID,
-            userMessageID,
             aiMessageID,
         });
 
