@@ -5,8 +5,9 @@
 
 declare module "sst" {
   export interface Resource {
-    "MyApp": {
-      "type": "sst.aws.SvelteKit"
+    "MyService": {
+      "service": string
+      "type": "sst.aws.Service"
       "url": string
     }
     "replication-bucket": {
