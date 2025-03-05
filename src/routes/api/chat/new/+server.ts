@@ -24,8 +24,6 @@ export async function POST({ request, locals }) {
 
 
 
-
-
         processResponeIntheBackground({ chatID, aiMessageID, userMessage });
 
         return json({

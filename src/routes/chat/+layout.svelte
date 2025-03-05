@@ -26,7 +26,7 @@
 	const chatsQuery = $derived(
 		z.current.query.chat
 			.orderBy("createdAt", "desc")
-			.where("title", "LIKE", `%${searchQuery}%`),
+			.where("title", "LIKE", `%${searchQuery}%`)
 	);
 	const chats = $derived(new Query(chatsQuery));
 </script>

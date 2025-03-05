@@ -121,7 +121,11 @@
 							{#if message.role === "user"}
 								{message.content}
 							{:else}
-								{@html marked(message.content)}
+								<div class="assistant-message-content">
+									<span class="message-text" class:typing={!message.isMessageFinished}>
+										{@html marked(message.content)}
+									</span>
+								</div>
 							{/if}
 						</div>
 					</div>
@@ -203,6 +207,63 @@
 		align-items: start;
 		text-align: justify;
 		text-justify: inter-word;
+	}
+
+
+	.assistant-message-content {
+		display: block;
+	}
+
+	.message-text {
+		display: block;
+	}
+
+	/* Apply fade-in only to the last paragraph or list item that's added */
+	.message-text :global(p:last-of-type),
+	.message-text :global(ul:last-child > li:last-child),
+	.message-text :global(ol:last-child > li:last-child) {
+		display: inline-block;
+		opacity: 0;
+		animation: fadeIn 0.3s ease-out forwards;
+	}
+
+	/* Handle both paragraphs and list items */
+	.message-text.typing :global(p:last-of-type)::after,
+	.message-text.typing :global(ol:last-child > li:last-child)::after,
+	.message-text.typing :global(ul:last-child > li:last-child)::after {
+		content: "●";
+		font-family: system-ui, sans-serif;
+		margin-left: 0.4em;
+		font-size: 0.7em;
+		line-height: normal;
+		vertical-align: baseline;
+		animation: typing 1s infinite ease-in-out;
+		opacity: 0.7;
+	}
+
+	/* Make sure lists with typing indicator maintain proper display */
+	.message-text.typing :global(ol:last-child),
+	.message-text.typing :global(ul:last-child) {
+		display: block;
+		margin-bottom: 0;
+	}
+
+	@keyframes typing {
+		0%, 100% {
+			opacity: 0.7;
+		}
+		50% {
+			opacity: 0.2;
+		}
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
 
 	.empty-chat {
