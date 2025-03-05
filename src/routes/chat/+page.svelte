@@ -19,51 +19,60 @@
 			const chatID = nanoid();
 			const userMessageID = nanoid();
 
-			await z.current.mutate.chat
-				.insert({
+			await z.current.mutateBatch(async (tx) => {
+				tx.chat.insert({
 					id: chatID,
 					userID: page.data.user.id,
 					modelID: currentModelID,
-				})
-				.then(() => {
-					z.current.mutate.message
-						.insert({
-							id: userMessageID,
-							chatID,
-							userID: page.data.user.id,
-							role: "user",
-							content: newMessage,
-						})
-						.then(() => {
-							fetch("/api/chat/new", {
-								method: "POST",
-								headers: {
-									"Content-Type": "application/json",
-								},
-								body: JSON.stringify({
-									userMessage: newMessage,
-									chatID,
-								}),
-							})
-								.then((response) => response.json())
-								.then((data) => {
-									if (data.error) {
-										console.error(
-											"Error sending message:",
-											data.error,
-										);
-										return;
-									}
-								})
-								.catch((error) => {
-									console.error(
-										"Error sending message:",
-										error,
-									);
-								});
-							goto(`/chat/${chatID}`);
-						});
+					createdAt: new Date().getTime(),
 				});
+
+				tx.message.insert({
+					id: userMessageID,
+					chatID,
+					userID: page.data.user.id,
+					role: "user",
+					content: newMessage,
+					isMessageFinished: true,
+					createdAt: new Date().getTime(),
+				});
+			});
+
+			const aiMessageID = nanoid();
+
+			await z.current.mutate.message.insert({
+				id: aiMessageID,
+				chatID,
+				userID: page.data.user.id,
+				role: "assistant",
+				content: "",
+				isMessageFinished: false,
+				createdAt: new Date().getTime(),
+
+			});
+
+			fetch("/api/chat/new", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					chatID,
+					userMessage: newMessage,
+					aiMessageID,
+				}),
+			})
+				.then((response) => response.json())
+				.then((data) => {
+					if (data.error) {
+						console.error("Error sending message:", data.error);
+						return;
+					}
+				})
+				.catch((error) => {
+					console.error("Error sending message:", error);
+				});
+			goto(`/chat/${chatID}`);
 		} catch (error) {
 			console.error(error);
 		}

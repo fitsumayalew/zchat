@@ -204,6 +204,13 @@ export default $config({
 
     const MyApp = new sst.aws.Service("MyService", {
       cluster,
+      health:{
+        startPeriod:'300 seconds',
+        command:["CMD-SHELL","curl -f http://localhost:3000/ || exit 1"],
+        interval:'5 seconds',
+        retries:3,
+        timeout:'3 seconds',
+      },
       // image:"a5890e3e67e5:latest",
       // image:"wmv87drlh5kxvn4kck06h3v0r",
       // image:"sha256:3a007788a1848a544d2677d46f4bc708db77106035bf6c9e1ccbc4c0f805fc44",
@@ -211,17 +218,17 @@ export default $config({
         public: true,
         domain: {
           cert: "arn:aws:acm:us-east-1:845467305134:certificate/1edefe07-880d-43e2-92c6-8f26028a1fe6",
-          name: "zchat1.iamfitsum.com",
+          name: "zchat.iamfitsum.com",
           dns:false
         },
-        ports: [{ listen: "80/http", forward: "3000/http" },{ listen: "443/https", forward: "3000/https" }],
+        ports: [{ listen: "80/http", forward: "3000/http" },{
+          listen: "443/https", forward:"3000/http"
+        }]
       },
       dev: {
         command: "bun run dev",
       },
     });
-
-
 
 
     return {

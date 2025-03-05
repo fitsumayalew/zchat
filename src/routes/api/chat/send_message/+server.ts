@@ -12,21 +12,11 @@ export async function POST({ request, locals }) {
     }
 
     try {
-        const { chatID } = await request.json();
+        const { chatID, aiMessageID } = await request.json();
 
+        
 
-        const aiMessageID = nanoid();
-
-        await db.insert(message).values({
-            id: aiMessageID,
-            chatID,
-            userID: locals.user.id,
-            role: 'assistant',
-            content: '',
-        });
-
-
-        await processResponeIntheBackground({ chatID, aiMessageID });
+        processResponeIntheBackground({ chatID, aiMessageID });
    
         return json({
             chatID,
@@ -44,17 +34,25 @@ export async function POST({ request, locals }) {
 async function processResponeIntheBackground({ chatID, aiMessageID }:
     { chatID: string, aiMessageID: string }) {
 
-    // get all messages from the chat
+
+           // get all messages from the chat
     const messages = await db.query.message.findMany({
         where: and(eq(message.chatID, chatID), ne(message.id, aiMessageID)),
         orderBy: [asc(message.createdAt)]
     });
+    console.log('processing response in the background');
+    console.log('chatID', chatID);
+    console.log('aiMessageID', aiMessageID);
+
+
+    console.log('messages length', messages.length);
+ 
 
     // Generate AI response using Vercel AI SDK
     const textStream = createAiResponseStream(messages.map((m) => ({
         role: m.role,
         content: m.content,
-        createdAt: m.createdAt.toISOString()
+        createdAt: m.createdAt.toISOString(),
     })))
 
     let content = ''
@@ -68,5 +66,9 @@ async function processResponeIntheBackground({ chatID, aiMessageID }:
     await db.update(message).set({
         isMessageFinished: true
     }).where(eq(message.id, aiMessageID));
+
+    
+    console.log('generated response and updated message, aiMessageID', aiMessageID);
+    console.log('content', content);
 
 }

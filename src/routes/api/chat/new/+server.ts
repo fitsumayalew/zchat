@@ -15,28 +15,18 @@ export async function POST({ request, locals }) {
     }
 
     try {
-        const { chatID, userMessage }: {
+        const { chatID, aiMessageID, userMessage }: {
             chatID: string,
-            userMessage: string
+            userMessage: string,
+            aiMessageID: string
         } = await request.json();
 
 
 
-        // create a new chat
-        const aiMessageID = nanoid();
-
-        // generate ai response message
-        await db.insert(message).values({
-            id: aiMessageID,
-            chatID,
-            userID: locals.user.id,
-            role: 'assistant',
-            content: '',
-        });
 
 
 
-        await processResponeIntheBackground({ chatID, userMessage, aiMessageID });
+        processResponeIntheBackground({ chatID, aiMessageID, userMessage });
 
         return json({
             chatID,

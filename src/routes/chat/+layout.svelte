@@ -6,10 +6,11 @@
 	import SignOutIcon from "$lib/icons/SignOutIcon.svelte";
 	import { schema } from "../../zero.schema.js";
 	import { PUBLIC_SERVER } from "$env/static/public";
-	import { z } from "$lib/z.svelte";
+	import { preload, z } from "$lib/z.svelte";
 	import { Query } from "zero-svelte";
     import Button from "$lib/components/Button.svelte";
     import { goto } from "$app/navigation";
+	import { theme } from '$lib/stores/theme';
 
 	let { data, children } = $props();
 	z.build({
@@ -19,6 +20,8 @@
 		auth: () => data.user.jwt,
 	});
 
+	preload(z);
+
 	let searchQuery = $state("");
 	const chatsQuery = $derived(
 		z.current.query.chat
@@ -26,37 +29,15 @@
 			.where("title", "LIKE", `%${searchQuery}%`),
 	);
 	const chats = $derived(new Query(chatsQuery));
-
-	// Theme state
-	let isDarkMode = $state(false);
-
-	// Function to toggle theme
-	function toggleTheme() {
-		isDarkMode = !isDarkMode;
-		if (isDarkMode) {
-			document.documentElement.classList.add("dark");
-			localStorage.setItem("theme", "dark");
-		} else {
-			document.documentElement.classList.remove("dark");
-			localStorage.setItem("theme", "light");
-		}
-	}
-
-	
 </script>
 
 <div class="chat-container">
 	<aside class="chat-sidebar">
 		<div class="sidebar-header">
 			<h2>Zchat</h2>
-			<!-- <a href="/chat"> -->
-				<Button label="New Chat"  onClick={() => {
-					goto(`/chat`);
-				}} />
-			<!-- </a> -->
+			<Button label="New Chat" onClick={() => goto(`/chat`)} />
 		</div>
 
-		<!-- Search bar -->
 		<div class="search-container">
 			<input
 				type="text"
@@ -84,7 +65,6 @@
 			{/if}
 		</ul>
 
-		<!-- User profile and logout section -->
 		<div class="user-section">
 			<div class="user-controls">
 				<div class="user-info">
@@ -94,10 +74,10 @@
 					<button
 						type="button"
 						class="action-button theme-toggle"
-						onclick={toggleTheme}
+						onclick={() => theme.update(t => ({ isDark: !t.isDark }))}
 						aria-label="Toggle theme"
 					>
-						{#if isDarkMode}
+						{#if $theme.isDark}
 							<DarkModeIcon />
 						{:else}
 							<LightModeIcon />

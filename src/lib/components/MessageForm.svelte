@@ -11,9 +11,10 @@
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-
-            // Dispatch a submit event that the parent can listen for
-            handleSubmit(e);
+            if (!disableSendButton) {
+                // Dispatch a submit event that the parent can listen for
+                handleSubmit(e);
+            }
         }
     }
 </script>
@@ -30,8 +31,15 @@
             rows="3"
         ></textarea>
         <div class="controls-container">
-            <ModelSelector {currentModelID} {models} disabled={disableModelSelector} />
-            <Button label="Send" disabled={!newMessage.trim() || disableSendButton}  />
+            <ModelSelector
+                {currentModelID}
+                {models}
+                disabled={disableModelSelector}
+            />
+            <Button
+                label="Send"
+                disabled={!newMessage.trim() || disableSendButton}
+            />
         </div>
     </div>
 </form>

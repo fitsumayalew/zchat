@@ -18,6 +18,18 @@
 	);
 	let chat = $derived(new Query(chatQuery));
 
+
+	let lastAiMessageQuery = $derived(
+		z.current.query.message
+			.where("chatID", "=", page.params.id)
+			.where("role", "=", "assistant")
+			.orderBy("createdAt", "desc")
+			.limit(1)
+			.one(),
+	);
+
+	let lastAiMessage = $derived(new Query(lastAiMessageQuery));
+
 	let modelsQuery = z.current.query.model;
 	let models = new Query(modelsQuery);
 
@@ -36,47 +48,62 @@
 		};
 	});
 
-	function submitMessage() {
+	async function submitMessage() {
 		if (!newMessage.trim()) return;
 
 		const userMessageID = nanoid();
-		z.current.mutate.message
-			.insert({
-				id: userMessageID,
-				chatID: page.params.id,
-				userID: page.data.user.id,
-				role: "user",
-				content: newMessage,
-			})
-			.then(() => {
-				newMessage = "";
-				fetch("/api/chat/send_message", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						chatID: page.params.id,
-					}),
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						if (data.error) {
-							console.error("Error sending message:", data.error);
-							return;
-						}
+		const aiMessageID = nanoid();
 
-						// Clear the input since we're using the Query component for messages now
-					})
-					.catch((error) => {
-						console.error("Error sending message:", error);
-					});
+		await z.current.mutate.message.insert({
+			id: userMessageID,
+			chatID: page.params.id,
+			userID: page.data.user.id,
+			role: "user",
+			content: newMessage,
+			isMessageFinished: true,
+			createdAt: new Date().getTime(),
+		});
+
+		newMessage = "";
+		await z.current.mutate.message.insert({
+			id: aiMessageID,
+			chatID: page.params.id,
+			userID: page.data.user.id,
+			role: "assistant",
+			content: "",
+			isMessageFinished: false,
+			createdAt: new Date().getTime(),
+
+		});
+		fetch("/api/chat/send_message", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				chatID: page.params.id,
+				aiMessageID,
+			}),
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				if (data.error) {
+					console.error("Error sending message:", data.error);
+					return;
+				}
+
+				// Clear the input since we're using the Query component for messages now
+			})
+			.catch((error) => {
+				console.error("Error sending message:", error);
 			});
 	}
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
-		submitMessage();
+		if (lastAiMessage.current?.isMessageFinished) {
+			submitMessage();
+		}
 	}
 </script>
 
@@ -114,9 +141,10 @@
 			bind:newMessage
 			{handleSubmit}
 			disableModelSelector={true}
-			disableSendButton={chat.current &&
-				chat.current.messages.length > 0 &&
-				!chat.current?.messages[0].isMessageFinished}
+			disableSendButton={
+				lastAiMessage.current &&
+				lastAiMessage.current?.isMessageFinished == false
+			}
 		/>
 	</div>
 </div>
@@ -142,7 +170,7 @@
 		align-items: center;
 		flex-direction: column-reverse;
 		scroll-snap-type: y mandatory;
-		padding: 0 20rem;
+		padding: 0rem;
 	}
 
 	.messages {
