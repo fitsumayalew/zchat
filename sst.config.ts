@@ -205,8 +205,6 @@ export default $config({
     const MyApp = new sst.aws.Service("MyService", {
       cluster,
       // image:"a5890e3e67e5:latest",
-      // image:"wmv87drlh5kxvn4kck06h3v0r",
-      // image:"sha256:3a007788a1848a544d2677d46f4bc708db77106035bf6c9e1ccbc4c0f805fc44",
       loadBalancer: {
         public: true,
         domain: {
