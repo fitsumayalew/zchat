@@ -184,33 +184,43 @@ export default $config({
     // );
 
 
-    const MyApp = new sst.aws.SvelteKit("MyApp", {
-      environment: {
-        ...commonEnv,
-        GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
-        PUBLIC_SERVER: viewSyncer.url,
-      }
-      ,
-      server: {
-        runtime: "nodejs22.x",
-      },
-      domain: {
-        cert: "arn:aws:acm:us-east-1:845467305134:certificate/1edefe07-880d-43e2-92c6-8f26028a1fe6",
-        name: "zchat.iamfitsum.com",
-        dns:false
+    // const MyApp = new sst.aws.SvelteKit("MyApp", {
+    //   environment: {
+    //     ...commonEnv,
+    //     GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+    //     PUBLIC_SERVER: viewSyncer.url,
+    //   }
+    //   ,
+    //   server: {
+    //     runtime: "nodejs22.x",
+    //   },
+    //   domain: {
+    //     cert: "arn:aws:acm:us-east-1:845467305134:certificate/1edefe07-880d-43e2-92c6-8f26028a1fe6",
+    //     name: "zchat.iamfitsum.com",
+    //     dns:false
 
-      }
+    //   }
+    // });
+
+    const MyApp = new sst.aws.Service("MyService", {
+      cluster,
+      // image:"a5890e3e67e5:latest",
+      // image:"wmv87drlh5kxvn4kck06h3v0r",
+      // image:"sha256:3a007788a1848a544d2677d46f4bc708db77106035bf6c9e1ccbc4c0f805fc44",
+      loadBalancer: {
+        public: true,
+        domain: {
+          cert: "arn:aws:acm:us-east-1:845467305134:certificate/1edefe07-880d-43e2-92c6-8f26028a1fe6",
+          name: "zchat1.iamfitsum.com",
+          dns:false
+        },
+        ports: [{ listen: "80/http", forward: "3000/http" },{ listen: "443/https", forward: "3000/https" }],
+      },
+      dev: {
+        command: "bun run dev",
+      },
     });
 
-    // new sst.aws.Service("MyService", {
-    //   cluster,
-    //   loadBalancer: {
-    //     ports: [{ listen: "80/http", forward: "3000/http" },{ listen: "443/https", forward: "3000/https" }],
-    //   },
-    //   dev: {
-    //     command: "npm run dev",
-    //   },
-    // });
 
 
 
