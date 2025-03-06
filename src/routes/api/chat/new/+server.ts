@@ -6,7 +6,7 @@ import { message, chat, model } from '../../../../drizzle.schema';
 import { nanoid } from 'nanoid';
 import { and, desc, eq, ne } from 'drizzle-orm';
 import { GOOGLE_GENERATIVE_AI_API_KEY } from '$env/static/private';
-import { createAiResponseStream, generateTitle } from '$lib/server/ai';
+import { createAiResponseStream, generateTitle, type ModelSlug } from '$lib/server/ai';
 
 export async function POST({ request, locals }) {
     // Check if user is authenticated
@@ -15,16 +15,15 @@ export async function POST({ request, locals }) {
     }
 
     try {
-        const { chatID, aiMessageID, userMessage }: {
+        const { chatID, aiMessageID, userMessage, modelSlug }: {
             chatID: string,
             userMessage: string,
-            aiMessageID: string
+            aiMessageID: string,
+            modelSlug: ModelSlug
         } = await request.json();
 
 
-
-
-        processResponeIntheBackground({ chatID, aiMessageID, userMessage });
+        processResponeIntheBackground({ chatID, aiMessageID, userMessage, modelSlug });
 
         return json({
             chatID,
@@ -38,15 +37,16 @@ export async function POST({ request, locals }) {
 
 
 async function processResponeIntheBackground(
-    { userMessage, chatID, aiMessageID }:
-        { userMessage: string, chatID: string, aiMessageID: string }) {
+    { userMessage, chatID, aiMessageID ,modelSlug}:
+        { userMessage: string, chatID: string, aiMessageID: string,modelSlug:ModelSlug }) {
 
 
     console.log('generating response');
 
 
+
     // generate ai response first
-    const textStream = createAiResponseStream([{
+    const textStream = createAiResponseStream(modelSlug,[{
         role: 'user',
         content: userMessage,
     }])
@@ -67,7 +67,8 @@ async function processResponeIntheBackground(
     // generate title
     const title = await generateTitle({
         userMessage,
-        aiMessage: content
+        aiMessage: content,
+        modelSlug
     })
 
     await db.update(chat).set({
