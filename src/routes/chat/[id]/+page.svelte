@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import { marked } from "marked";
 	let newMessage = $state("");
 	let messagesContainer: HTMLElement;
 	let showShareDialog = $state(false);
@@ -11,7 +10,7 @@
 	import ShareDialog from "$lib/components/ShareDialog.svelte";
 	import MessageWithAvatar from "$lib/components/MessageWithAvatar.svelte";
 	import { nanoid } from "nanoid";
-    import { untrack } from "svelte";
+	import { isSidebarCollapsed } from "$lib/stores/sidebar";
 
 
 	// Create a reactive query that updates when page.params.id changes
@@ -134,7 +133,7 @@
 </script>
 
 <div class="chat-window">
-	<div class="chat-header">
+	<div class="chat-header" class:sidebar-collapsed={$isSidebarCollapsed}>
 		<h1>{chat.current?.title || "Chat"}</h1>
 		<button class="share-button" onclick={() => showShareDialog = true}>
 			Share
@@ -204,6 +203,11 @@
 		background: var(--bg-1);
 		border-bottom: 1px solid var(--bg-3);
 		z-index: 10;
+		transition: left 0.3s ease;
+	}
+
+	.chat-header.sidebar-collapsed {
+		left: 0;
 	}
 
 	.chat-header h1 {

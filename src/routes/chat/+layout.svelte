@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import { onMount } from "svelte";
 	import LightModeIcon from "$lib/icons/LightModeIcon.svelte";
 	import DarkModeIcon from "$lib/icons/DarkModeIcon.svelte";
 	import SignOutIcon from "$lib/icons/SignOutIcon.svelte";
@@ -11,6 +10,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import { goto } from "$app/navigation";
 	import { theme } from "$lib/stores/theme";
+	import { isSidebarCollapsed } from "$lib/stores/sidebar";
 
 	let { data, children } = $props();
 	z.build({
@@ -37,10 +37,19 @@
 </script>
 
 <div class="chat-container">
-	<aside class="chat-sidebar">
+	<aside class="chat-sidebar" class:collapsed={$isSidebarCollapsed}>
 		<div class="sidebar-header">
 			<h2>Zchat</h2>
-			<Button label="New Chat" onClick={() => goto(`/chat`)} />
+			<div class="header-buttons">
+				<Button label="New Chat" onClick={() => goto(`/chat`)} />
+				<button 
+					class="collapse-button" 
+					onclick={() => isSidebarCollapsed.update(v => !v)}
+					aria-label={$isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+				>
+					{$isSidebarCollapsed ? "→" : "←"}
+				</button>
+			</div>
 		</div>
 
 		<div class="search-container">
@@ -102,6 +111,16 @@
 		</div>
 	</aside>
 
+	{#if $isSidebarCollapsed}
+		<button 
+			class="expand-button"
+			onclick={() => isSidebarCollapsed.set(false)}
+			aria-label="Expand sidebar"
+		>
+			→
+		</button>
+	{/if}
+
 	<main class="chat-main">
 		{@render children()}
 	</main>
@@ -110,17 +129,24 @@
 <style>
 	.chat-container {
 		display: grid;
-		grid-template-columns: 300px 1fr;
+		grid-template-columns: auto 1fr;
 		height: 100vh;
 		gap: 0;
 	}
 
 	.chat-sidebar {
+		width: 300px;
 		border-right: 1px solid var(--bg-3);
 		background-color: var(--bg-1);
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
+		transition: width 0.3s ease, transform 0.3s ease;
+	}
+
+	.chat-sidebar.collapsed {
+		width: 0;
+		transform: translateX(-100%);
 	}
 
 	.sidebar-header {
@@ -129,6 +155,29 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.header-buttons {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.collapse-button {
+		background: transparent;
+		border: none;
+		color: var(--fg-1);
+		cursor: pointer;
+		padding: 0.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.25rem;
+		transition: background-color 0.2s;
+	}
+
+	.collapse-button:hover {
+		background-color: var(--bg-2);
 	}
 
 	.chat-list {
@@ -250,5 +299,30 @@
 		text-align: center;
 		color: var(--fg-2);
 		font-style: italic;
+	}
+
+	.expand-button {
+		position: fixed;
+		top: 50%;
+		transform: translateY(-50%);
+		left: 0;
+		z-index: 20;
+		background: var(--bg-1);
+		border: 1px solid var(--bg-3);
+		border-left: none;
+		color: var(--fg-1);
+		padding: 0.75rem 0.5rem;
+		border-radius: 0 0.25rem 0.25rem 0;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+		transition: background-color 0.2s;
+		font-size: 1.25rem;
+	}
+
+	.expand-button:hover {
+		background-color: var(--bg-2);
 	}
 </style>
