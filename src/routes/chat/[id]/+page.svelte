@@ -3,21 +3,29 @@
 	import { marked } from "marked";
 	let newMessage = $state("");
 	let messagesContainer: HTMLElement;
+	let showShareDialog = $state(false);
 
 	import { z } from "$lib/z.svelte";
 	import { Query } from "zero-svelte";
 	import MessageForm from "$lib/components/MessageForm.svelte";
+	import ShareDialog from "$lib/components/ShareDialog.svelte";
+	import MessageWithAvatar from "$lib/components/MessageWithAvatar.svelte";
 	import { nanoid } from "nanoid";
+    import { untrack } from "svelte";
+
 
 	// Create a reactive query that updates when page.params.id changes
 	let chatQuery = $derived(
 		z.current.query.chat
 			.where("id", "=", page.params.id)
 			.one()
-			.related("messages", (q) => q.orderBy("createdAt", "desc")),
+			.related("messages", (q) => 
+				q.orderBy("createdAt", "desc")
+				.orderBy("role", "asc")
+				.related("user", (q) => q.one())
+			),
 	);
 	let chat = $derived(new Query(chatQuery));
-
 
 	let lastAiMessageQuery = $derived(
 		z.current.query.message
@@ -33,12 +41,27 @@
 	let modelsQuery = z.current.query.model;
 	let models = new Query(modelsQuery);
 
+
+
 	// Listen for the submit event from the MessageTextArea
 	function handleMessageSubmit() {
 		if (newMessage.trim()) {
 			submitMessage();
 		}
 	}
+
+
+	let currentModelID = $derived(chat.current?.modelID);
+
+	function handleModelSelectorChange(e: Event) {
+		const temp = (e.target as HTMLSelectElement).value;
+		e.preventDefault();
+		z.current.mutate.chat.update({
+			id: page.params.id,
+			modelID: temp,
+		});
+	}
+
 
 	// Add event listener for the custom submit event
 	$effect(() => {
@@ -83,6 +106,9 @@
 			body: JSON.stringify({
 				chatID: page.params.id,
 				aiMessageID,
+				userMessageID,
+				userMessage: newMessage,
+				modelID: chat.current?.modelID,
 			}),
 		})
 			.then((response) => response.json())
@@ -108,27 +134,18 @@
 </script>
 
 <div class="chat-window">
+	<div class="chat-header">
+		<h1>{chat.current?.title || "Chat"}</h1>
+		<button class="share-button" onclick={() => showShareDialog = true}>
+			Share
+		</button>
+	</div>
+
 	<div class="messages-container" bind:this={messagesContainer}>
 		<div class="messages">
 			{#if chat.current?.messages && chat.current?.messages.length}
 				{#each chat.current?.messages as message}
-					<div
-						class={message.role === "user"
-							? "user-message"
-							: "assistant-message"}
-					>
-						<div class="message-content">
-							{#if message.role === "user"}
-								{message.content}
-							{:else}
-								<div class="assistant-message-content">
-									<span class="message-text" class:typing={!message.isMessageFinished}>
-										{@html marked(message.content)}
-									</span>
-								</div>
-							{/if}
-						</div>
-					</div>
+					<MessageWithAvatar {message} />
 				{/each}
 			{:else}
 				<div class="empty-chat">
@@ -140,11 +157,11 @@
 
 	<div class="message-form-container">
 		<MessageForm
-			currentModelID={chat.current?.modelID}
+			currentModelID={currentModelID}
 			models={models.current}
 			bind:newMessage
 			{handleSubmit}
-			disableModelSelector={true}
+			{handleModelSelectorChange}
 			disableSendButton={
 				lastAiMessage.current &&
 				lastAiMessage.current?.isMessageFinished == false
@@ -153,6 +170,19 @@
 	</div>
 </div>
 
+{#if showShareDialog}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="dialog-overlay" onclick={() => showShareDialog = false}>
+		<div class="dialog-container" onclick={(e)=>e.stopPropagation}>
+			<ShareDialog
+				chatID={page.params.id}
+				onClose={() => showShareDialog = false}
+			/>
+		</div>
+	</div>
+{/if}
+
 <style>
 	/* Layout */
 	.chat-window {
@@ -160,6 +190,41 @@
 		flex-direction: column;
 		height: 100%;
 		align-items: center;
+	}
+
+	.chat-header {
+		position: fixed;
+		top: 0;
+		left: 300px;
+		right: 0;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem;
+		background: var(--bg-1);
+		border-bottom: 1px solid var(--bg-3);
+		z-index: 10;
+	}
+
+	.chat-header h1 {
+		margin: 0;
+		font-size: 1.25rem;
+		font-weight: 600;
+	}
+
+	.share-button {
+		background: var(--bg-2);
+		border: 1px solid var(--bg-3);
+		color: var(--fg-1);
+		padding: 0.5rem 1rem;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.875rem;
+		transition: background-color 0.2s;
+	}
+
+	.share-button:hover {
+		background: var(--bg-3);
 	}
 
 	.messages-container {
@@ -191,62 +256,10 @@
 		margin-bottom: 1rem;
 	}
 
-	.user-message {
-		background-color: #3b82f6;
-		color: white;
-		border-radius: 1.5rem;
-		padding: 0.75rem 1rem;
-		align-self: flex-end;
-		justify-self: flex-end;
-		max-width: 80%;
-	}
-
-	.assistant-message {
-		align-self: flex-start;
-		color: var(--text-color);
-		align-items: start;
-		text-align: justify;
-		text-justify: inter-word;
-	}
 
 
-	.assistant-message-content {
-		display: block;
-	}
 
-	.message-text {
-		display: block;
-	}
 
-	/* Apply fade-in only to the last paragraph or list item that's added */
-	.message-text :global(p:last-of-type),
-	.message-text :global(ul:last-child > li:last-child),
-	.message-text :global(ol:last-child > li:last-child) {
-		display: inline-block;
-		opacity: 0;
-		animation: fadeIn 0.3s ease-out forwards;
-	}
-
-	/* Handle both paragraphs and list items */
-	.message-text.typing :global(p:last-of-type)::after,
-	.message-text.typing :global(ol:last-child > li:last-child)::after,
-	.message-text.typing :global(ul:last-child > li:last-child)::after {
-		content: "●";
-		font-family: system-ui, sans-serif;
-		margin-left: 0.4em;
-		font-size: 0.7em;
-		line-height: normal;
-		vertical-align: baseline;
-		animation: typing 1s infinite ease-in-out;
-		opacity: 0.7;
-	}
-
-	/* Make sure lists with typing indicator maintain proper display */
-	.message-text.typing :global(ol:last-child),
-	.message-text.typing :global(ul:last-child) {
-		display: block;
-		margin-bottom: 0;
-	}
 
 	@keyframes typing {
 		0%, 100% {
@@ -272,5 +285,22 @@
 		justify-content: center;
 		align-items: center;
 		color: #94a3b8;
+	}
+
+	.dialog-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 100;
+	}
+
+	.dialog-container {
+		padding: 1rem;
 	}
 </style>

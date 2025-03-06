@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { message, chat } from '../../../../drizzle.schema';
-import { nanoid } from 'nanoid';
+import { message, model } from '../../../../drizzle.schema';
 import { and, asc, eq, ne } from 'drizzle-orm';
 import { createAiResponseStream, type ModelSlug } from '$lib/server/ai';
 
@@ -12,16 +11,25 @@ export async function POST({ request, locals }) {
     }
 
     try {
-        const { chatID, aiMessageID, userMessage, userMessageID, modelSlug }: {
+        const { chatID, aiMessageID, userMessage, userMessageID, modelID }: {
             chatID: string,
             aiMessageID: string,
             userMessage: string,
             userMessageID: string,
-            modelSlug: ModelSlug
+            modelID: string
         } = await request.json();
 
 
-        processResponeIntheBackground({ chatID, aiMessageID, userMessageID, userMessage, modelSlug });
+         // get model using model id
+         const currentModel = await db.query.model.findFirst({
+            where:eq(model.id, modelID)
+        })
+
+        if (!currentModel) {
+            return json({ error: 'Model not found' }, { status: 404 });
+        }
+
+        processResponeIntheBackground({ chatID, aiMessageID, userMessageID, userMessage, modelSlug:currentModel.slug });
 
         return json({
             chatID,

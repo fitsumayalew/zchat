@@ -1,14 +1,19 @@
 <script lang="ts">
-    export let currentModelID: string | undefined = undefined;
-    export let models: {id: string, name: string}[];
+    export let models: { id: string; name: string }[];
     export let disabled: boolean = false;
+    export let currentModelID: string | undefined = undefined;
+    export let onChange: (e: Event) => void;
+
+ 
 </script>
 
 <select
     value={currentModelID}
+    onchange={onChange}
+
     class="model-select"
     aria-label="Select AI model"
-    disabled={disabled}
+    {disabled}
 >
     {#each models as model}
         <option value={model.id}>{model.name}</option>
@@ -46,7 +51,7 @@
             color: var(--fg-1, #e6e6e6);
             border-color: var(--bg-3, #666);
         }
-        
+
         :global(html:not(.light)) .model-select:focus {
             border-color: var(--link-active, #4baffb);
             box-shadow: 0 0 0 2px rgba(75, 175, 251, 0.2);

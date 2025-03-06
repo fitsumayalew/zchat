@@ -11,7 +11,7 @@
 	let models = new Query(modelsQuery);
 
 	let newMessage = $state("");
-	let currentModelID = $derived(models.current[0]?.id);
+	let currentModelID = $state('hBzb_YGPsDzVnHZkOB');
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -60,6 +60,7 @@
 					chatID,
 					userMessage: newMessage,
 					aiMessageID,
+					modelID: currentModelID,
 				}),
 			})
 				.then((response) => response.json())
@@ -77,6 +78,11 @@
 			console.error(error);
 		}
 	}
+
+	function handleModelSelectorChange(e: Event) {
+		e.preventDefault();
+		currentModelID = (e.target as HTMLSelectElement).value;
+	}
 </script>
 
 <div class="welcome-container">
@@ -88,7 +94,8 @@
 			models={models.current}
 			bind:newMessage
 			{handleSubmit}
-			{currentModelID}
+			bind:currentModelID
+			{handleModelSelectorChange}
 		/>
 	</div>
 </div>

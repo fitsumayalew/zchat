@@ -1,53 +1,55 @@
-
 import { createZeroSchema } from "drizzle-zero";
 import * as drizzleSchema from "./drizzle.schema";
 
 import {
-  definePermissions,
-  type Row,
-  type ExpressionBuilder,
-  NOBODY_CAN,
+    definePermissions,
+    type Row,
+    type ExpressionBuilder,
+    NOBODY_CAN,
+    ANYONE_CAN,
 } from "@rocicorp/zero";
 
 
 export const schema = createZeroSchema(drizzleSchema, {
-    version:1,
+    version: 1,
     tables: {
-        user:{
-            id:true,
-            name:true,
-            email:true,
-            password:true,
-            createdAt:true,
-            updatedAt:true,
+        user: {
+            id: true,
+            name: true,
+            email: true,
+            password: true,
+            createdAt: true,
+            updatedAt: true,
         },
-        chat:{
-            id:true,
-            userID:true,
-            modelID:true,
-            title:true,
-            createdAt:true,
-            updatedAt:true,
+        chat: {
+            id: true,
+            userID: true,
+            modelID: true,
+            title: true,
+            isChatPublicRead: true,
+            isChatPublicWrite: true,
+            createdAt: true,
+            updatedAt: true,
         },
-        message:{
-            id:true,
-            chatID:true,
-            userID:true,
-            role:true,
-            content:true,
-            isMessageFinished:true,
-            createdAt:true,
-            updatedAt:true,
+        message: {
+            id: true,
+            chatID: true,
+            userID: true,
+            role: true,
+            content: true,
+            isMessageFinished: true,
+            createdAt: true,
+            updatedAt: true,
         },
-        model:{
-            id:true,
-            name:true,
-            slug:true,
-            createdAt:true,
-            updatedAt:true,
+        model: {
+            id: true,
+            name: true,
+            slug: true,
+            createdAt: true,
+            updatedAt: true,
         }
     },
-    
+
 })
 
 export type Schema = typeof schema;
@@ -59,8 +61,8 @@ type Model = Row<typeof schema.tables.model>;
 
 
 type AuthData = {
-  sub: string;
-  name:string;
+    sub: string;
+    name: string;
 };
 
 
@@ -69,70 +71,108 @@ export const permissions: ReturnType<typeof definePermissions>
 
     = definePermissions<AuthData, Schema>(schema, () => {
 
-      const userIsLoggedIn = (
-        authData: AuthData,
-        {cmpLit}: ExpressionBuilder<Schema, TableName>,
-      ) => cmpLit(authData.sub, 'IS NOT', null);
-  
+        const userIsLoggedIn = (
+            authData: AuthData,
+            { cmpLit }: ExpressionBuilder<Schema, TableName>,
+        ) => cmpLit(authData.sub, 'IS NOT', null);
 
-      const loggedInUserIsCreator = (
-        authData: AuthData,
-        eb: ExpressionBuilder<Schema, 'chat' | 'message'>,
-      ) =>
-        eb.and(
-          userIsLoggedIn(authData, eb),
-          eb.cmp('userID', '=', authData.sub),
-        );
-  
- 
 
-    return{
-      
-        user:{
-            row:{
-                insert: NOBODY_CAN,
-                select: NOBODY_CAN,
-                delete:NOBODY_CAN,
-                update:{
-                    preMutation: NOBODY_CAN,
-                    postMutation: NOBODY_CAN,
-                },
-            }
-        },
-        model:{
-            row:{
-                insert: NOBODY_CAN,
-                select: [userIsLoggedIn],
-                delete: NOBODY_CAN,
-                update: {
-                    preMutation: NOBODY_CAN,
-                    postMutation: NOBODY_CAN,
-                },
-            }
-        },
-        chat:{
-            row:{
-                insert: [loggedInUserIsCreator],
-                select: [loggedInUserIsCreator],
-                delete:[loggedInUserIsCreator],
-                update:{
-                    preMutation: NOBODY_CAN,
-                    postMutation: NOBODY_CAN,
-                },
-            }
-        },
-        message:{
-            row:{
-                insert: [loggedInUserIsCreator],
-                select: [loggedInUserIsCreator],
-                delete: NOBODY_CAN,
-                update:{
-                    preMutation: NOBODY_CAN,
-                    postMutation: NOBODY_CAN,
-                },
+        const loggedInUserIsCreator = (
+            authData: AuthData,
+            eb: ExpressionBuilder<Schema, 'chat' | 'message'>,
+        ) =>
+            eb.and(
+                userIsLoggedIn(authData, eb),
+                eb.cmp('userID', '=', authData.sub),
+
+            );
+
+        const userOwnsChat = (
+            authData: AuthData,
+            eb: ExpressionBuilder<Schema, 'message'>,
+        ) =>
+            eb.exists('chat', q => q.where(eb => eb.cmp('userID', '=', authData.sub)))
+
+
+
+        const userHasReadAccessChat = (
+            authData: AuthData,
+            eb: ExpressionBuilder<Schema, 'chat'>,
+        ) => eb.cmp('isChatPublicRead', '=', true)
+
+
+
+        const userHasWriteAccessChat = (
+            authData: AuthData,
+            eb: ExpressionBuilder<Schema, 'chat'>,
+        ) => eb.cmp('isChatPublicWrite', '=', true)
+
+
+
+        const userHasReadAccessMessage = (
+            authData: AuthData,
+            eb: ExpressionBuilder<Schema, 'message'>,
+        ) =>
+            eb.exists('chat', q => q.where(eb => userHasReadAccessChat(authData, eb)))
+
+
+
+
+
+        const userHasWriteAccessMessage = (
+            authData: AuthData,
+            eb: ExpressionBuilder<Schema, 'message'>,
+        ) =>
+            eb.exists('chat', q => q.where(eb => userHasWriteAccessChat(authData, eb)))
+
+
+        return {
+
+            user: {
+                row: {
+                    insert: NOBODY_CAN,
+                    select: ANYONE_CAN,
+                    delete: NOBODY_CAN,
+                    update: {
+                        preMutation: NOBODY_CAN,
+                        postMutation: NOBODY_CAN,
+                    },
+                }
+            },
+            model: {
+                row: {
+                    insert: NOBODY_CAN,
+                    select: ANYONE_CAN,
+                    delete: NOBODY_CAN,
+                    update: {
+                        preMutation: NOBODY_CAN,
+                        postMutation: NOBODY_CAN,
+                    },
+                }
+            },
+            chat: {
+                row: {
+                    insert: [loggedInUserIsCreator],
+                    select: [loggedInUserIsCreator, userHasReadAccessChat],
+                    delete: [loggedInUserIsCreator],
+                    update: {
+                        preMutation: [loggedInUserIsCreator, userHasWriteAccessChat],
+                        postMutation: [loggedInUserIsCreator, userHasWriteAccessChat],
+                    },
+                }
+            },
+            message: {
+                row: {
+                    insert: [loggedInUserIsCreator, userHasWriteAccessMessage],
+                    select: [userOwnsChat, userHasReadAccessMessage],
+                    delete: [loggedInUserIsCreator],
+                    update: {
+                        preMutation: NOBODY_CAN,
+                        postMutation: NOBODY_CAN,
+                    },
+                }
             }
         }
-    }
-  });
+    });
 
 

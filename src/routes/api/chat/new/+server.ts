@@ -1,11 +1,7 @@
 import { json } from '@sveltejs/kit';
-import { google, createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText, streamText } from 'ai';
 import { db } from '$lib/server/db';
 import { message, chat, model } from '../../../../drizzle.schema';
-import { nanoid } from 'nanoid';
-import { and, desc, eq, ne } from 'drizzle-orm';
-import { GOOGLE_GENERATIVE_AI_API_KEY } from '$env/static/private';
+import { eq } from 'drizzle-orm';
 import { createAiResponseStream, generateTitle, type ModelSlug } from '$lib/server/ai';
 
 export async function POST({ request, locals }) {
@@ -15,15 +11,25 @@ export async function POST({ request, locals }) {
     }
 
     try {
-        const { chatID, aiMessageID, userMessage, modelSlug }: {
+        const { chatID, aiMessageID, userMessage, modelID }: {
             chatID: string,
             userMessage: string,
             aiMessageID: string,
-            modelSlug: ModelSlug
+            modelID: ModelSlug
         } = await request.json();
 
 
-        processResponeIntheBackground({ chatID, aiMessageID, userMessage, modelSlug });
+        // get model using model id
+        const currentModel = await db.query.model.findFirst({
+            where:eq(model.id, modelID)
+        })
+
+        if (!currentModel) {
+            return json({ error: 'Model not found' }, { status: 404 });
+        }
+
+        
+        processResponeIntheBackground({ chatID, aiMessageID, userMessage, modelSlug:currentModel.slug });
 
         return json({
             chatID,

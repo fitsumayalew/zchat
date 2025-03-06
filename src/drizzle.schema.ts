@@ -21,7 +21,7 @@ export const userRelations = relations(user, ({ many }) => ({
 export const model = pgTable('model', {
 	id: varchar('id').primaryKey(),
 	name: varchar('name').notNull(),
-	slug: varchar('slug').notNull(),
+	slug: varchar('slug',{enum:['gemini-2.0-flash-exp','gemini-1.5-pro','gpt-4o-mini']}).notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
@@ -32,6 +32,8 @@ export const chat = pgTable('chat', {
 	userID: varchar('user_id').references(() => user.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 	title: varchar('title').default('New Chat'),
 	modelID: varchar('model_id').references(() => model.id, { onDelete: 'set null', onUpdate: 'cascade' }).notNull(),
+	isChatPublicRead: boolean('is_chat_public_read').default(false).notNull(),
+	isChatPublicWrite: boolean('is_chat_public_write').default(false).notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });

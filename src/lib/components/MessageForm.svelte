@@ -8,6 +8,7 @@
     export let handleSubmit: (e: Event) => void;
     export let disableModelSelector: boolean = false;
     export let disableSendButton: boolean = false;
+    export let handleModelSelectorChange: (e: Event) => void;
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -32,7 +33,8 @@
         ></textarea>
         <div class="controls-container">
             <ModelSelector
-                {currentModelID}
+                onChange={handleModelSelectorChange}
+                currentModelID={currentModelID}
                 {models}
                 disabled={disableModelSelector}
             />

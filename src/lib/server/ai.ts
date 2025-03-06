@@ -32,7 +32,11 @@ export function createAiResponseStream(modelSlug: ModelSlug, messages: {
     createdAt?: string,
 }[],) {
 
+
+    console.log("using model", modelSlug);
+
     const model = getModel(modelSlug);
+
 
 
     console.log('creating ai response stream');
