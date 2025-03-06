@@ -8,9 +8,9 @@
 	import { PUBLIC_SERVER } from "$env/static/public";
 	import { preload, z } from "$lib/z.svelte";
 	import { Query } from "zero-svelte";
-    import Button from "$lib/components/Button.svelte";
-    import { goto } from "$app/navigation";
-	import { theme } from '$lib/stores/theme';
+	import Button from "$lib/components/Button.svelte";
+	import { goto } from "$app/navigation";
+	import { theme } from "$lib/stores/theme";
 
 	let { data, children } = $props();
 	z.build({
@@ -26,7 +26,12 @@
 	const chatsQuery = $derived(
 		z.current.query.chat
 			.orderBy("createdAt", "desc")
-			.where("title", "LIKE", `%${searchQuery}%`)
+			.where((eb) =>
+				eb.and(
+					eb.cmp("title", "LIKE", `%${searchQuery}%`),
+					eb.cmp("userID", "=", data.user.id),
+				),
+			),
 	);
 	const chats = $derived(new Query(chatsQuery));
 </script>
@@ -74,7 +79,8 @@
 					<button
 						type="button"
 						class="action-button theme-toggle"
-						onclick={() => theme.update(t => ({ isDark: !t.isDark }))}
+						onclick={() =>
+							theme.update((t) => ({ isDark: !t.isDark }))}
 						aria-label="Toggle theme"
 					>
 						{#if $theme.isDark}
