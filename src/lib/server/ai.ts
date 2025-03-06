@@ -1,16 +1,42 @@
-import { GOOGLE_GENERATIVE_AI_API_KEY } from "$env/static/private";
+import { GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY } from "$env/static/private";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText, type Message } from "ai";
 
+export type ModelSlug = 'gemini-2.0-flash-exp' | 'gemini-1.5-pro' | 'gpt-4o-mini';
 const googleAI = createGoogleGenerativeAI({ apiKey: GOOGLE_GENERATIVE_AI_API_KEY });
-const model = googleAI('gemini-2.0-flash-exp');
+const openai = createOpenAI({
+    apiKey: OPENAI_API_KEY,
+});
 
 
-export function createAiResponseStream(messages: {
+
+function getModel(modelSlug: ModelSlug) {
+    if (modelSlug === 'gemini-2.0-flash-exp') {
+        return googleAI('gemini-2.0-flash-exp');
+    }
+    if (modelSlug === 'gpt-4o-mini') {
+        return openai('gpt-4o-mini');
+    }
+
+    if (modelSlug === 'gemini-1.5-pro') {
+        return googleAI('gemini-1.5-pro');
+    }
+
+    throw new Error(`Model ${modelSlug} not found`);
+}
+
+export function createAiResponseStream(modelSlug: ModelSlug, messages: {
     role: "user" | "assistant",
     content: string,
-    createdAt?: string
-}[]) {
+    createdAt?: string,
+}[],) {
+
+    const model = getModel(modelSlug);
+
+
+    console.log('creating ai response stream');
+    console.log(messages);
     const { textStream } = streamText({
         model,
         messages,
@@ -26,16 +52,19 @@ export function createAiResponseStream(messages: {
     });
 
     return textStream;
-  
+
 }
 
 export async function generateTitle({
     userMessage,
-    aiMessage
+    aiMessage,
+    modelSlug
 }: {
     userMessage: string,
-    aiMessage: string
+    aiMessage: string,
+    modelSlug: ModelSlug
 }) {
+    const model = getModel(modelSlug);
     const response = await generateText({
         model,
         system: `
