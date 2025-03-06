@@ -11,7 +11,7 @@
 	let models = new Query(modelsQuery);
 
 	let newMessage = $state("");
-	let currentModelID = $state('hBzb_YGPsDzVnHZkOB');
+	let currentModelID = $state('hsQf89_ReWM9BCBWiDrg3');
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
