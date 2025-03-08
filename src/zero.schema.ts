@@ -38,6 +38,7 @@ export const schema = createZeroSchema(drizzleSchema, {
             role: true,
             content: true,
             isMessageFinished: true,
+            isResponseGenerated: true,
             createdAt: true,
             updatedAt: true,
         },
@@ -67,9 +68,15 @@ type AuthData = {
 
 
 
+
 export const permissions: ReturnType<typeof definePermissions>
 
     = definePermissions<AuthData, Schema>(schema, () => {
+
+        const isServer = (
+            authData: AuthData,
+            { cmpLit }: ExpressionBuilder<Schema, TableName>,
+        ) => cmpLit(authData.sub, '=', 'secretkey');
 
         const userIsLoggedIn = (
             authData: AuthData,
@@ -153,22 +160,22 @@ export const permissions: ReturnType<typeof definePermissions>
             chat: {
                 row: {
                     insert: [loggedInUserIsCreator],
-                    select: [loggedInUserIsCreator, userHasReadAccessChat],
+                    select: [loggedInUserIsCreator, userHasReadAccessChat,isServer],
                     delete: [loggedInUserIsCreator],
                     update: {
-                        preMutation: [loggedInUserIsCreator, userHasWriteAccessChat],
-                        postMutation: [loggedInUserIsCreator, userHasWriteAccessChat],
+                        preMutation: [loggedInUserIsCreator, userHasWriteAccessChat,isServer],
+                        postMutation: [loggedInUserIsCreator, userHasWriteAccessChat,isServer],
                     },
                 }
             },
             message: {
                 row: {
-                    insert: [loggedInUserIsCreator, userHasWriteAccessMessage],
-                    select: [userOwnsChat, userHasReadAccessMessage],
+                    insert: [loggedInUserIsCreator, userHasWriteAccessMessage,isServer],
+                    select: [userOwnsChat, userHasReadAccessMessage,isServer],
                     delete: [loggedInUserIsCreator],
                     update: {
-                        preMutation: NOBODY_CAN,
-                        postMutation: NOBODY_CAN,
+                        preMutation: [isServer],
+                        postMutation: [isServer],
                     },
                 }
             }

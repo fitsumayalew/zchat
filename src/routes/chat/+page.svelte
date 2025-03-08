@@ -11,7 +11,7 @@
 	let models = new Query(modelsQuery);
 
 	let newMessage = $state("");
-	let currentModelID = $state('hsQf89_ReWM9BCBWiDrg3');
+	let currentModelID = $state('neKbi4XZlsvsKflU9siya');
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -38,41 +38,29 @@
 				});
 			});
 
-			const aiMessageID = nanoid();
-
-			await z.current.mutate.message.insert({
-				id: aiMessageID,
-				chatID,
-				userID: page.data.user.id,
-				role: "assistant",
-				content: "",
-				isMessageFinished: false,
-				createdAt: new Date().getTime(),
-
-			});
-
-			fetch("/api/chat/new", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					chatID,
-					userMessage: newMessage,
-					aiMessageID,
-					modelID: currentModelID,
-				}),
-			})
-				.then((response) => response.json())
-				.then((data) => {
-					if (data.error) {
-						console.error("Error sending message:", data.error);
-						return;
-					}
-				})
-				.catch((error) => {
-					console.error("Error sending message:", error);
-				});
+			// don't need this anymore too
+			// fetch("/api/chat/new", {
+			// 	method: "POST",
+			// 	headers: {
+			// 		"Content-Type": "application/json",
+			// 	},
+			// 	body: JSON.stringify({
+			// 		chatID,
+			// 		userMessage: newMessage,
+			// 		aiMessageID,
+			// 		modelID: currentModelID,
+			// 	}),
+			// })
+			// 	.then((response) => response.json())
+			// 	.then((data) => {
+			// 		if (data.error) {
+			// 			console.error("Error sending message:", data.error);
+			// 			return;
+			// 		}
+			// 	})
+			// 	.catch((error) => {
+			// 		console.error("Error sending message:", error);
+			// 	});
 			goto(`/chat/${chatID}`);
 		} catch (error) {
 			console.error(error);

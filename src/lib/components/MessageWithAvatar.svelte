@@ -75,33 +75,35 @@
 <style>
     .user-message-container {
         align-self: flex-end;
-        max-width: 80%;
+        max-width: 85%;
+        margin: 0.5rem 0;
     }
 
     .message-with-avatar {
         display: flex;
-        align-items: start;
+        align-items: flex-start;
         gap: 0.75rem;
     }
 
     .user-message {
         color: white;
-        border-radius: 1.5rem;
-        padding: 0.75rem 1rem;
+        border-radius: 1.25rem;
+        padding: 0.75rem 1.25rem;
         order: 1;
-        margin: 0.25rem 0;
+        margin: 0;
+        word-break: break-word;
     }
 
     .avatar-container {
         position: relative;
         order: 2;
         height: 2rem;
-        margin-top: 0.6rem;
+        margin-bottom: 0.1rem;
     }
 
     .avatar {
-        width: 2rem;
-        height: 2rem;
+        width: 2.5rem;
+        height: 2.5rem;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -143,38 +145,20 @@
         align-items: start;
         text-align: justify;
         text-justify: inter-word;
-        max-width: 80%;
+        max-width: 90%;
+        padding: 0.6rem 1rem;
     }
 
     .message-text {
         display: block;
     }
 
-    .message-text :global(p:last-of-type),
-    .message-text :global(ul:last-child > li:last-child),
-    .message-text :global(ol:last-child > li:last-child) {
+    .message-text.typing :global(p:last-of-type),
+    .message-text.typing :global(ul:last-child > li:last-child),
+    .message-text.typing :global(ol:last-child > li:last-child) {
         display: inline-block;
         opacity: 0;
-        animation: fadeIn 0.3s ease-out forwards;
-    }
-
-    .message-text.typing :global(p:last-of-type)::after,
-    .message-text.typing :global(ol:last-child > li:last-child)::after,
-    .message-text.typing :global(ul:last-child > li:last-child)::after {
-        content: "●";
-        font-family: system-ui, sans-serif;
-        margin-left: 0.4em;
-        font-size: 0.7em;
-        line-height: normal;
-        vertical-align: baseline;
-        animation: typing 1s infinite ease-in-out;
-        opacity: 0.7;
-    }
-
-    .message-text.typing :global(ol:last-child),
-    .message-text.typing :global(ul:last-child) {
-        display: block;
-        margin-bottom: 0;
+        animation: fadeIn 0.5s ease-out forwards;
     }
 
     @keyframes typing {
@@ -182,16 +166,18 @@
             opacity: 0.7;
         }
         50% {
-            opacity: 0.2;
+            opacity: 0.3;
         }
     }
 
     @keyframes fadeIn {
         from {
-            opacity: 0;
+            opacity: 0.4;
+            transform: translateY(2px);
         }
         to {
             opacity: 1;
+            transform: translateY(0);
         }
     }
 </style> 

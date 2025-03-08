@@ -26,16 +26,17 @@
 	);
 	let chat = $derived(new Query(chatQuery));
 
-	let lastAiMessageQuery = $derived(
+	let lastMessageQuery = $derived(
 		z.current.query.message
 			.where("chatID", "=", page.params.id)
-			.where("role", "=", "assistant")
+			.where("role", "=", "user")
+			.where("userID", "=", page.data.user.id)
 			.orderBy("createdAt", "desc")
 			.limit(1)
 			.one(),
 	);
 
-	let lastAiMessage = $derived(new Query(lastAiMessageQuery));
+	let lastMessage = $derived(new Query(lastMessageQuery));
 
 	let modelsQuery = z.current.query.model;
 	let models = new Query(modelsQuery);
@@ -74,7 +75,7 @@
 		if (!newMessage.trim()) return;
 
 		const userMessageID = nanoid();
-		const aiMessageID = nanoid();
+		// const aiMessageID = nanoid();
 
 		await z.current.mutate.message.insert({
 			id: userMessageID,
@@ -87,46 +88,48 @@
 		});
 
 		newMessage = "";
-		await z.current.mutate.message.insert({
-			id: aiMessageID,
-			chatID: page.params.id,
-			userID: page.data.user.id,
-			role: "assistant",
-			content: "",
-			isMessageFinished: false,
-			createdAt: new Date().getTime(),
+		// await z.current.mutate.message.insert({
+		// 	id: aiMessageID,
+		// 	chatID: page.params.id,
+		// 	userID: page.data.user.id,
+		// 	role: "assistant",
+		// 	content: "",
+		// 	isMessageFinished: false,
+		// 	createdAt: new Date().getTime(),
 
-		});
-		fetch("/api/chat/send_message", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				chatID: page.params.id,
-				aiMessageID,
-				userMessageID,
-				userMessage: newMessage,
-				modelID: chat.current?.modelID,
-			}),
-		})
-			.then((response) => response.json())
-			.then((data) => {
-				if (data.error) {
-					console.error("Error sending message:", data.error);
-					return;
-				}
+		// });
 
-				// Clear the input since we're using the Query component for messages now
-			})
-			.catch((error) => {
-				console.error("Error sending message:", error);
-			});
+		// remove this since no
+		// fetch("/api/chat/send_message", {
+		// 	method: "POST",
+		// 	headers: {
+		// 		"Content-Type": "application/json",
+		// 	},
+		// 	body: JSON.stringify({
+		// 		chatID: page.params.id,
+		// 		aiMessageID,
+		// 		userMessageID,
+		// 		userMessage: newMessage,
+		// 		modelID: chat.current?.modelID,
+		// 	}),
+		// })
+		// 	.then((response) => response.json())
+		// 	.then((data) => {
+		// 		if (data.error) {
+		// 			console.error("Error sending message:", data.error);
+		// 			return;
+		// 		}
+
+		// 		// Clear the input since we're using the Query component for messages now
+		// 	})
+		// 	.catch((error) => {
+		// 		console.error("Error sending message:", error);
+		// 	});
 	}
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
-		if (lastAiMessage.current?.isMessageFinished) {
+		if (lastMessage.current?.isResponseGenerated) {
 			submitMessage();
 		}
 	}
@@ -162,8 +165,8 @@
 			{handleSubmit}
 			{handleModelSelectorChange}
 			disableSendButton={
-				lastAiMessage.current &&
-				lastAiMessage.current?.isMessageFinished == false
+				lastMessage.current &&
+				lastMessage.current?.isResponseGenerated == false
 			}
 		/>
 	</div>
@@ -214,6 +217,7 @@
 		margin: 0;
 		font-size: 1.25rem;
 		font-weight: 600;
+		margin-left: 2rem;
 	}
 
 	.share-button {
@@ -250,8 +254,8 @@
 		display: flex;
 		flex-direction: column-reverse;
 		min-height: min-content;
-		max-width: 48rem;
-		width: 100%;
+		max-width: 46rem;
+		width: 94%;
 	}
 
 	.message-form-container {

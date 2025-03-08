@@ -59,6 +59,7 @@ export const message = pgTable('message', {
 	role: text('role', { enum: ['user', 'assistant'] }).notNull(),
 	content: text('content').notNull(),
 	isMessageFinished: boolean('is_message_finished').notNull().default(false),
+	isResponseGenerated: boolean('is_response_generated').notNull().default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });

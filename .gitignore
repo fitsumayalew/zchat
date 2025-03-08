@@ -24,3 +24,5 @@ vite.config.ts.timestamp-*
 
 # sst
 .sst
+
+build_subscriber

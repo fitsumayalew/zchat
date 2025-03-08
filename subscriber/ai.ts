@@ -1,7 +1,11 @@
-import { GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY } from "$env/static/private";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText, type Message } from "ai";
+import { must } from "./utils";
+
+const GOOGLE_GENERATIVE_AI_API_KEY = must(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+const OPENAI_API_KEY = must(process.env.OPENAI_API_KEY);
+
 
 export type ModelSlug = 'gemini-2.0-flash-exp' | 'gemini-1.5-pro' | 'gpt-4o-mini';
 const googleAI = createGoogleGenerativeAI({ apiKey: GOOGLE_GENERATIVE_AI_API_KEY });
@@ -48,10 +52,12 @@ export function createAiResponseStream(modelSlug: ModelSlug, messages: {
         You are an AI assistant called zChat.
         You are a helpful assistant that can help with a wide range of tasks.
         Be very friendly and engaging.
+        Be humorous and fun.
         You are able to understand the user's intent and provide a helpful response.
         If you are not sure about the user's intent, you can ask for more information.
         Don't ever reply with an empty message.
         You are made using sveltekit and zero.
+        The person who made you is Fitsum Ayalew.
         `
     });
 
@@ -93,7 +99,7 @@ export async function generateTitle({
                 Title: “Perfect Pasta Cooking Tips”
 
                 Output Format:
-                Provide only the generated title, without extra explanations.`,
+                Provide only the generated title, without extra explanations or adding quotes to the title.`,
         prompt: `
         User: ${userMessage}
         Assistant: ${aiMessage}

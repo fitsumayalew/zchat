@@ -56,6 +56,7 @@
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
+        padding: 0.75rem;
     }
 
     .controls-container {
@@ -82,17 +83,15 @@
         background-color: var(--bg-2, #e2e8f0);
         color: var(--fg-1, #334155);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        /* Removed transition to eliminate hover animation */
     }
 
-    /* Removed focus-within styles to eliminate focus animation */
 
     .message-input {
         field-sizing: content;
         width: 100%;
         border: none;
         resize: none;
-        min-height: 2.5rem;
+        min-height: 1.5rem;
         max-height: 10rem;
         height: auto;
         background-color: transparent;

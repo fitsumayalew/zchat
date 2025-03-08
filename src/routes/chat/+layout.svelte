@@ -39,16 +39,11 @@
 <div class="chat-container">
 	<aside class="chat-sidebar" class:collapsed={$isSidebarCollapsed}>
 		<div class="sidebar-header">
-			<h2>Zchat</h2>
-			<div class="header-buttons">
-				<Button label="New Chat" onClick={() => goto(`/chat`)} />
-				<button 
-					class="collapse-button" 
-					onclick={() => isSidebarCollapsed.update(v => !v)}
-					aria-label={$isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-				>
-					{$isSidebarCollapsed ? "→" : "←"}
-				</button>
+			<div class="header-content">
+				<h2>Zchat</h2>
+				<div class="header-buttons">
+					<Button label="New Chat" onClick={() => goto(`/chat`)} />
+				</div>
 			</div>
 		</div>
 
@@ -111,15 +106,13 @@
 		</div>
 	</aside>
 
-	{#if $isSidebarCollapsed}
-		<button 
-			class="expand-button"
-			onclick={() => isSidebarCollapsed.set(false)}
-			aria-label="Expand sidebar"
-		>
-			→
-		</button>
-	{/if}
+	<button 
+		class="collapse-button" 
+		onclick={() => isSidebarCollapsed.update(v => !v)}
+		aria-label={$isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+	>
+		{$isSidebarCollapsed ? "→" : "←"}
+	</button>
 
 	<main class="chat-main">
 		{@render children()}
@@ -138,46 +131,12 @@
 		width: 300px;
 		border-right: 1px solid var(--bg-3);
 		background-color: var(--bg-1);
-		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
-		transition: width 0.3s ease, transform 0.3s ease;
-	}
-
-	.chat-sidebar.collapsed {
-		width: 0;
-		transform: translateX(-100%);
-	}
-
-	.sidebar-header {
-		padding: 0.3rem;
-		border-bottom: 1px solid var(--bg-3);
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.header-buttons {
-		display: flex;
-		gap: 0.5rem;
-		align-items: center;
-	}
-
-	.collapse-button {
-		background: transparent;
-		border: none;
-		color: var(--fg-1);
-		cursor: pointer;
-		padding: 0.5rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 0.25rem;
-		transition: background-color 0.2s;
-	}
-
-	.collapse-button:hover {
-		background-color: var(--bg-2);
+		transition: all 0.3s ease;
+		z-index: 30;
+		position: relative;
+		overflow: hidden;
 	}
 
 	.chat-list {
@@ -186,6 +145,66 @@
 		margin: 0;
 		flex: 1;
 		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.chat-sidebar.collapsed {
+		width: 0;
+		transform: translateX(-100%);
+	}
+
+	.collapse-button {
+		position: fixed;
+		left: 300px;
+		top: 1rem;
+		background: var(--bg-1);
+		border: 1px solid var(--bg-3);
+		border-left: none;
+		color: var(--fg-1);
+		cursor: pointer;
+		width: 2rem;
+		height: 2rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0 0.25rem 0.25rem 0;
+		transition: all 0.3s ease;
+		z-index: 30;
+	}
+
+	.chat-sidebar.collapsed + .collapse-button {
+		left: 0;
+	}
+
+	.sidebar-header {
+		padding: 1rem;
+		border-bottom: 1px solid var(--bg-3);
+		position: sticky;
+		top: 0;
+		background: var(--bg-1);
+		z-index: 10;
+	}
+
+	.header-content {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.header-content h2 {
+		margin: 0;
+		font-size: 1.25rem;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.header-buttons {
+		flex: 1;
+	}
+
+	.header-buttons :global(.send-button) {
+		width: 100%;
 	}
 
 	.chat-item {
@@ -214,6 +233,8 @@
 
 	.chat-main {
 		overflow-y: auto;
+		position: relative;
+		height: 100vh;
 	}
 
 	/* User section styles */
@@ -222,27 +243,35 @@
 		padding: 1rem;
 		border-top: 1px solid var(--bg-3);
 		background-color: var(--bg-2);
+		position: sticky;
+		bottom: 0;
 	}
 
 	.user-controls {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.user-info {
 		text-align: left;
+		min-width: 0;
 	}
 
 	.user-name {
 		font-weight: 500;
 		color: var(--fg-1);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.action-buttons {
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
+		flex-shrink: 0;
 	}
 
 	.action-button {
@@ -256,9 +285,7 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: 0.25rem;
-		transition:
-			background-color 0.2s,
-			color 0.2s;
+		transition: all 0.2s;
 	}
 
 	.action-button:hover {
@@ -275,23 +302,28 @@
 
 	/* Search bar styles */
 	.search-container {
-		padding: 0.75rem 0.5rem;
+		padding: 0.75rem 1rem;
 		border-bottom: 1px solid var(--bg-3);
+		position: sticky;
+		top: 0;
+		background: var(--bg-1);
+		z-index: 5;
 	}
 
 	.search-input {
 		width: 100%;
-		padding: 0.5rem;
+		padding: 0.75rem;
 		border: 1px solid var(--bg-3);
-		border-radius: 0.25rem;
-		background-color: var(--bg-1);
+		border-radius: 0.5rem;
+		background-color: var(--bg-2);
 		color: var(--fg-1);
 		font-size: 0.875rem;
+		transition: all 0.2s;
 	}
 
 	.search-input:focus {
-		outline: none;
 		border-color: var(--link);
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 	}
 
 	.empty-results {
@@ -301,28 +333,37 @@
 		font-style: italic;
 	}
 
-	.expand-button {
-		position: fixed;
-		top: 50%;
-		transform: translateY(-50%);
-		left: 0;
-		z-index: 20;
-		background: var(--bg-1);
-		border: 1px solid var(--bg-3);
-		border-left: none;
-		color: var(--fg-1);
-		padding: 0.75rem 0.5rem;
-		border-radius: 0 0.25rem 0.25rem 0;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-		transition: background-color 0.2s;
-		font-size: 1.25rem;
-	}
+	/* Mobile Styles */
+	@media (max-width: 768px) {
+		.chat-container {
+			grid-template-columns: 1fr;
+		}
 
-	.expand-button:hover {
-		background-color: var(--bg-2);
+		.chat-sidebar {
+			position: fixed;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			width: 100%;
+			max-width: 300px;
+			transform: translateX(-100%);
+		}
+
+		.chat-sidebar:not(.collapsed) {
+			transform: translateX(0);
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+		}
+
+		.chat-main {
+			margin-left: 0;
+		}
+
+		.collapse-button {
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+
+		.chat-sidebar.collapsed + .collapse-button {
+			left: 0rem;
+		}
 	}
 </style>

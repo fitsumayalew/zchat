@@ -16,7 +16,9 @@
     "dev:ui": "vite dev",
     "dev:zero-cache": "zero-cache-dev -p ./src/zero.schema.ts",
     "prepare": "svelte-kit sync || echo ''",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "subsciber": "bun run --watch ./subsciber/index.ts"
+
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^4.0.0",

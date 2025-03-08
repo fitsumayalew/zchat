@@ -22,12 +22,12 @@ export function preload(z: Z<Schema>) {
 	didPreload = true;
 
 
-	const baseChatQuery = z.current.query.chat
+	z.current.query.chat
 		.related('messages', q =>
 			q.orderBy('createdAt', 'desc')
 				.orderBy('role', 'asc')
 				.related('user', q => q.one()))
-		.limit(20)
+		.limit(100)
 		.preload();
 
 	// const baseIssueQuery = z.query.issue
