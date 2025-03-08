@@ -6,12 +6,13 @@ import { must } from "./utils";
 
 const PUBLIC_SERVER = must(process.env.PUBLIC_SERVER)
 const ZERO_AUTH_SECRET = must(process.env.ZERO_AUTH_SECRET)
+const ZERO_SERVER_ID = must(process.env.ZERO_SERVER_ID)
 
 
 const jwtPayload = {
-    sub: ZERO_AUTH_SECRET,
+    sub: ZERO_SERVER_ID,
     iat: Math.floor(Date.now() / 1000),
-    name: ZERO_AUTH_SECRET,
+    name: ZERO_SERVER_ID,
 };
 
 
@@ -27,7 +28,7 @@ const token = await new SignJWT(jwtPayload)
 export const z = new Zero({
     server: PUBLIC_SERVER,
     schema,
-    userID: ZERO_AUTH_SECRET,
+    userID: ZERO_SERVER_ID,
     kvStore: 'mem',
     auth: () => token
 });

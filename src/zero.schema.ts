@@ -76,7 +76,7 @@ export const permissions: ReturnType<typeof definePermissions>
         const isServer = (
             authData: AuthData,
             { cmpLit }: ExpressionBuilder<Schema, TableName>,
-        ) => cmpLit(authData.sub, '=', 'secretkey');
+        ) => cmpLit(authData.sub, '=', process.env.ZERO_SERVER_ID!);
 
         const userIsLoggedIn = (
             authData: AuthData,
