@@ -3,9 +3,17 @@ import { processMessage } from "./processMessage";
 import { actualQuery } from "./z";
 import { z } from "./z";
 
+export const PROCESSING_MESSAGES: string[] = []
+
 actualQuery.addListener((messages, resultType) => {
     if (resultType === 'complete') {
+
         actualQuery.data.forEach((message) => {
+            if (PROCESSING_MESSAGES.includes(message.id)) {
+                return;
+            }
+            PROCESSING_MESSAGES.push(message.id);
+
             const aiMessageID = nanoid();
             z.mutate.message.insert({
                 id: aiMessageID,
@@ -19,11 +27,10 @@ actualQuery.addListener((messages, resultType) => {
                 updatedAt: new Date().getTime(),
             });
 
-            // z.mutate.message.update({
-            //     id: message.id,
-            //     isResponseGenerated: true,
-            //     isMessageFinished: true,
-            // });
+            z.mutate.message.update({
+                id: message.id,
+                isResponseGenerated: true,
+            });
 
             console.log('Processing new message: ', message.id);
             processMessage(message, aiMessageID);

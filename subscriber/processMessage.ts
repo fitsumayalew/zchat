@@ -4,6 +4,7 @@ import { z, type newMessagesQueryType } from "./z";
 import { db } from "./db"
 import { and, asc, eq, ne } from "drizzle-orm";
 import { message } from "../src/drizzle.schema";
+import { PROCESSING_MESSAGES } from ".";
 export async function processMessage(newMessage: newMessagesQueryType, aiMessageID: string) {
     // get all messages from the chat
     // couldn't get messages from zero because can't guareente completness
@@ -57,6 +58,8 @@ export async function processMessage(newMessage: newMessagesQueryType, aiMessage
             title,
         })
     }
+
+    PROCESSING_MESSAGES.splice(PROCESSING_MESSAGES.indexOf(newMessage.id), 1);
 
     console.log('Done processing message:', newMessage.id);
 }

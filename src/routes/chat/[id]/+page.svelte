@@ -83,7 +83,8 @@
 			userID: page.data.user.id,
 			role: "user",
 			content: newMessage,
-			isMessageFinished: true,
+			isMessageFinished: false,
+			isResponseGenerated: false,
 			createdAt: new Date().getTime(),
 		});
 
@@ -166,7 +167,7 @@
 			{handleModelSelectorChange}
 			disableSendButton={
 				lastMessage.current &&
-				lastMessage.current?.isResponseGenerated == false
+				lastMessage.current?.isMessageFinished == false
 			}
 		/>
 	</div>
