@@ -11,13 +11,14 @@
 	let models = new Query(modelsQuery);
 
 	let newMessage = $state("");
-	let currentModelID = $state('neKbi4XZlsvsKflU9siya');
+	let currentModelID = $state("neKbi4XZlsvsKflU9siya");
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		try {
 			const chatID = nanoid();
 			const userMessageID = nanoid();
+			const aiMessageID = nanoid();
 
 			await z.current.mutateBatch(async (tx) => {
 				tx.chat.insert({
@@ -38,6 +39,17 @@
 				});
 			});
 
+			newMessage = "";
+			await z.current.mutate.message.insert({
+				id: aiMessageID,
+				chatID: chatID,
+				userID: page.data.user.id,
+				role: "assistant",
+				content: "",
+				isMessageFinished: false,
+				isResponseGenerated: false,
+				createdAt: new Date().getTime(),
+			});
 			// don't need this anymore too
 			// fetch("/api/chat/new", {
 			// 	method: "POST",

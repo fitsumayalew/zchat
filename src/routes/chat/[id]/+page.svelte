@@ -29,7 +29,7 @@
 	let lastMessageQuery = $derived(
 		z.current.query.message
 			.where("chatID", "=", page.params.id)
-			.where("role", "=", "user")
+			.where("role", "=", "assistant")
 			.where("userID", "=", page.data.user.id)
 			.orderBy("createdAt", "desc")
 			.limit(1)
@@ -37,6 +37,10 @@
 	);
 
 	let lastMessage = $derived(new Query(lastMessageQuery));
+
+	$effect(() => {
+		console.log('Last message updated:', lastMessage.current);
+	});
 
 	let modelsQuery = z.current.query.model;
 	let models = new Query(modelsQuery);
@@ -75,7 +79,7 @@
 		if (!newMessage.trim()) return;
 
 		const userMessageID = nanoid();
-		// const aiMessageID = nanoid();
+		const aiMessageID = nanoid();
 
 		await z.current.mutate.message.insert({
 			id: userMessageID,
@@ -83,22 +87,23 @@
 			userID: page.data.user.id,
 			role: "user",
 			content: newMessage,
-			isMessageFinished: false,
-			isResponseGenerated: false,
+			isMessageFinished: true,
+			isResponseGenerated: true,
 			createdAt: new Date().getTime(),
 		});
 
 		newMessage = "";
-		// await z.current.mutate.message.insert({
-		// 	id: aiMessageID,
-		// 	chatID: page.params.id,
-		// 	userID: page.data.user.id,
-		// 	role: "assistant",
-		// 	content: "",
-		// 	isMessageFinished: false,
-		// 	createdAt: new Date().getTime(),
+		await z.current.mutate.message.insert({
+			id: aiMessageID,
+			chatID: page.params.id,
+			userID: page.data.user.id,
+			role: "assistant",
+			content: "",
+			isMessageFinished: false,
+			isResponseGenerated: false,
+			createdAt: new Date().getTime(),
 
-		// });
+		});
 
 		// remove this since no
 		// fetch("/api/chat/send_message", {
@@ -130,7 +135,7 @@
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
-		if (lastMessage.current?.isResponseGenerated) {
+		if (lastMessage.current?.isMessageFinished) {
 			submitMessage();
 		}
 	}

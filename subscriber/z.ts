@@ -35,7 +35,7 @@ export const z = new Zero({
 
 
 // main query
-const newMessagesQuery = z.query.message.where('isResponseGenerated', 'IS', false).where('role', '=', 'user')
+const newMessagesQuery = z.query.message.where('isResponseGenerated', 'IS', false).where('role', '=', 'assistant')
     .related('chat', (q) => q.related('model'));
 export const actualQuery = newMessagesQuery.materialize();
 

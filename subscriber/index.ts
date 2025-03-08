@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import { processMessage } from "./processMessage";
 import { actualQuery } from "./z";
 import { z } from "./z";
+import { ModelSlug } from "./ai";
 
 export const PROCESSING_MESSAGES: string[] = []
 
@@ -14,26 +15,13 @@ actualQuery.addListener((messages, resultType) => {
             }
             PROCESSING_MESSAGES.push(message.id);
 
-            const aiMessageID = nanoid();
-            z.mutate.message.insert({
-                id: aiMessageID,
-                role: 'assistant',
-                content: '',
-                isMessageFinished: false,
-                isResponseGenerated: false,
-                userID: message.userID,
-                chatID: message.chatID,
-                createdAt: new Date().getTime(),
-                updatedAt: new Date().getTime(),
-            });
-
             z.mutate.message.update({
                 id: message.id,
                 isResponseGenerated: true,
-            });
+            })
 
             console.log('Processing new message: ', message.id);
-            processMessage(message, aiMessageID);
+            processMessage(message.chatID!, message.chat?.model?.slug! as ModelSlug, message.id);
 
         })
 
